@@ -1,9 +1,11 @@
 "use client"
 import { useState } from "react"
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator } from "react-native"
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator, Alert } from "react-native"
 import { Mail, Lock } from "lucide-react-native"
 import { useTheme } from "../contexts/themeContexts.js"
 import ThemeToggle from "./ThemeToggle.js"
+import AsyncStorage from '@react-native-async-storage/async-storage'
+import { loginUser } from "../services/api" // Importe a função de login que criamos anteriormente
 
 const LoginScreen = ({ navigation }) => {
   const [email, setEmail] = useState("")
@@ -13,20 +15,37 @@ const LoginScreen = ({ navigation }) => {
 
   const handleSubmit = async () => {
     if (!email || !password) {
-      alert("Por favor, preencha todos os campos.")
+      Alert.alert("Erro", "Por favor, preencha todos os campos.")
       return
     }
 
     setIsLoading(true)
 
     try {
-      await new Promise((resolve) => setTimeout(resolve, 1000))
-      console.log("Login com:", { email, password })
-      alert("Login realizado com sucesso!")
-      // Navigate to home screen after successful login
+      // Chama a função de login da API
+      const response = await loginUser({ 
+        email: email.toLowerCase().trim(), 
+        password 
+      })
+      
+      // Armazena o token de autenticação
+      await AsyncStorage.setItem('authToken', response.token)
+      
+      // Armazena os dados do usuário se necessário
+      await AsyncStorage.setItem('userData', JSON.stringify(response.user))
+      
+      Alert.alert("Sucesso", "Login realizado com sucesso!")
       navigation.navigate("Home")
-    } catch (err) {
-      alert("Falha no login. Verifique suas credenciais.")
+    } catch (error) {
+      console.error("Erro no login:", error)
+      let errorMessage = "Falha no login. Verifique suas credenciais."
+      
+      if (error.response) {
+        // Se o backend retornou um erro específico
+        errorMessage = error.response.data.error || errorMessage
+      }
+      
+      Alert.alert("Erro", errorMessage)
     } finally {
       setIsLoading(false)
     }
@@ -76,6 +95,9 @@ const LoginScreen = ({ navigation }) => {
                 onChangeText={setEmail}
                 keyboardType="email-address"
                 autoCapitalize="none"
+                autoCorrect={false}
+                importantForAutofill="yes"
+                textContentType="emailAddress"
               />
             </View>
           </View>
@@ -84,7 +106,9 @@ const LoginScreen = ({ navigation }) => {
             <View style={styles.labelRow}>
               <Text style={[styles.label, { color: theme.textPrimary }]}>Senha</Text>
               <TouchableOpacity onPress={() => navigation.navigate("ForgotPassword")}>
-                <Text style={styles.forgotLink}>Esqueceu a senha?</Text>
+                <Text style={[styles.forgotLink, { color: theme.linkColor || "#3b82f6" }]}>
+                  Esqueceu a senha?
+                </Text>
               </TouchableOpacity>
             </View>
             <View
@@ -104,12 +128,19 @@ const LoginScreen = ({ navigation }) => {
                 value={password}
                 onChangeText={setPassword}
                 secureTextEntry
+                autoCorrect={false}
+                importantForAutofill="yes"
+                textContentType="password"
               />
             </View>
           </View>
 
           <TouchableOpacity
-            style={[styles.submitButton, isLoading && styles.submitButtonDisabled]}
+            style={[
+              styles.submitButton, 
+              { backgroundColor: theme.buttonPrimary || "#3b82f6" },
+              isLoading && styles.submitButtonDisabled
+            ]}
             onPress={handleSubmit}
             disabled={isLoading}
           >
@@ -127,7 +158,10 @@ const LoginScreen = ({ navigation }) => {
         <View style={styles.footer}>
           <Text style={[styles.footerText, { color: theme.textSecondary }]}>
             Não tem uma conta?{" "}
-            <Text style={styles.registerLink} onPress={() => navigation.navigate("Register")}>
+            <Text 
+              style={[styles.registerLink, { color: theme.linkColor || "#3b82f6" }]} 
+              onPress={() => navigation.navigate("Register")}
+            >
               Registre-se
             </Text>
           </Text>
@@ -137,6 +171,7 @@ const LoginScreen = ({ navigation }) => {
   )
 }
 
+// Mantenha os estilos como estão, apenas adicionei referências ao tema onde necessário
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -156,12 +191,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     padding: 30,
     borderWidth: 1,
-    shadowOffset: {
-      width: 0,
-      height: 10,
-    },
-    shadowOpacity: 0.3,
-    shadowRadius: 30,
+    boxShadow: '0 10px 30px rgba(0,0,0,0.3)',
     elevation: 5,
   },
   header: {
@@ -194,12 +224,10 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
   forgotLink: {
-    color: "#3b82f6",
     fontSize: 14,
     fontWeight: "500",
   },
   registerLink: {
-    color: "#3b82f6",
     fontSize: 14,
     fontWeight: "500",
   },
@@ -222,7 +250,6 @@ const styles = StyleSheet.create({
   submitButton: {
     width: "100%",
     height: 52,
-    backgroundColor: "#3b82f6",
     borderRadius: 12,
     alignItems: "center",
     justifyContent: "center",
