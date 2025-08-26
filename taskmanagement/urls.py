@@ -22,9 +22,5 @@ from django.urls import path, include
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-<<<<<<< HEAD
     path('api/', include('tasklist.urls')),  # Inclui as URLs da sua app
-=======
-    path('api/', include('accounts.urls')),  
->>>>>>> 1def373015fbc27d0b5dd9d2abc2f76dd77f90f5
 ]

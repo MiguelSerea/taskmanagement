@@ -2,6 +2,7 @@
 import { useState } from "react"
 import { View, Text, StyleSheet, ActivityIndicator } from "react-native"
 import { useTheme } from "../contexts/themeContexts.js"
+import { useAuth } from "../contexts/authContexts.js" // ✅ Adicionar import do AuthContext
 import ThemeToggle from "./ThemeToggle.js"
 import ApiService from "../services/api.js"
 import AsyncStorage from '@react-native-async-storage/async-storage'
@@ -17,6 +18,7 @@ const LoginScreen = ({ navigation }) => {
   const [isLoading, setIsLoading] = useState(false)
   const [message, setMessage] = useState({ text: "", type: "" }) // success, error, info
   const { theme } = useTheme()
+  const { login } = useAuth() // ✅ Usar contexto de autenticação
 
   // ✅ Função para mostrar mensagens
   const showMessage = (text, type = "info") => {
@@ -61,7 +63,7 @@ const LoginScreen = ({ navigation }) => {
     }
   }
 
-  // ✅ Função de submit do login
+  // ✅ Função de submit do login - CORRIGIDA
   const handleSubmit = async () => {
     if (!validateForm()) {
       return
@@ -80,20 +82,16 @@ const LoginScreen = ({ navigation }) => {
       
       console.log('✅ Login bem-sucedido:', response)
       
-      // Salvar token no AsyncStorage
+      // ✅ Usar o contexto para fazer login (isso vai automaticamente navegar)
       if (response.token) {
-        await AsyncStorage.setItem('userToken', response.token)
-        await AsyncStorage.setItem('userData', JSON.stringify(response.user))
-        console.log('💾 Token e dados salvos no AsyncStorage')
-      }
-
-      showMessage("Login realizado com sucesso!", "success")
-      
-      // Aguardar um pouco para mostrar a mensagem antes de navegar
-      setTimeout(() => {
+        await login(response.token, response.user) // ✅ Contexto cuida da navegação
+        showMessage("Login realizado com sucesso!", "success")
         clearForm()
-        navigation.navigate("Home")
-      }, 1500)
+        
+        console.log('🔄 Navegação será feita automaticamente pelo AuthContext')
+        // ✅ Não precisa mais do navigation.navigate("Home") 
+        // O RootNavigator vai automaticamente mostrar AppStack quando userToken for definido
+      }
       
     } catch (error) {
       console.error('❌ Erro no login:', error)
@@ -120,13 +118,21 @@ const LoginScreen = ({ navigation }) => {
       id: 1,
       title: "Nome de Usuário",
       value: formData.username,
-      onChangeText: (text) => setFormData(prev => ({ ...prev, username: text }))
+      onChangeText: (text) => setFormData(prev => ({ ...prev, username: text })),
+      placeholder: "Digite seu nome de usuário",
+      autoCapitalize: "none",
+      autoComplete: "username",
+      textContentType: "username"
     },
     {
       id: 2,
       title: "Senha",
       value: formData.password,
-      onChangeText: (text) => setFormData(prev => ({ ...prev, password: text }))
+      onChangeText: (text) => setFormData(prev => ({ ...prev, password: text })),
+      placeholder: "Digite sua senha",
+      secureTextEntry: true,
+      autoComplete: "password",
+      textContentType: "password"
     }
   ]
 
@@ -136,19 +142,22 @@ const LoginScreen = ({ navigation }) => {
       id: 1,
       title: isLoading ? "Entrando..." : "Entrar",
       onPress: handleSubmit,
-      disabled: isLoading
+      disabled: isLoading,
+      variant: "primary"
     },
     {
       id: 2,
       title: "Esqueceu a senha?",
       onPress: handleForgotPassword,
-      variant: "link"
+      variant: "link",
+      disabled: isLoading
     },
     {
       id: 3,
       title: "Registre-se",
       onPress: () => navigation.navigate("Register"),
-      variant: "secondary"
+      variant: "secondary",
+      disabled: isLoading
     }
   ]
 
@@ -164,7 +173,7 @@ const LoginScreen = ({ navigation }) => {
           {
             backgroundColor: theme.bgCard,
             borderColor: theme.borderColor,
-            boxShadow: `0px 10px 30px ${theme.shadow}`,
+            shadowColor: theme.shadow,
           },
         ]}
       >
@@ -196,7 +205,7 @@ const LoginScreen = ({ navigation }) => {
         {/* ✅ Loading Indicator */}
         {isLoading && (
           <View style={styles.loadingContainer}>
-            <ActivityIndicator size="small" color="#3b82f6" />
+            <ActivityIndicator size="small" color={theme.buttonPrimary || "#3b82f6"} />
             <Text style={[styles.loadingText, { color: theme.textSecondary }]}>
               Verificando credenciais...
             </Text>
@@ -230,6 +239,19 @@ const LoginScreen = ({ navigation }) => {
             />
           </View>
         )}
+
+        {/* ✅ Debug info (apenas em desenvolvimento) */}
+        {__DEV__ && (
+          <View style={styles.debugContainer}>
+            <Text style={[styles.debugText, { color: theme.textSecondary }]}>
+              Debug: {JSON.stringify({ 
+                username: formData.username, 
+                hasPassword: !!formData.password,
+                isLoading 
+              })}
+            </Text>
+          </View>
+        )}
       </View>
     </View>
   )
@@ -254,6 +276,13 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     padding: 30,
     borderWidth: 1,
+    shadowOffset: {
+      width: 0,
+      height: 10,
+    },
+    shadowOpacity: 0.3,
+    shadowRadius: 30,
+    elevation: 5,
   },
   // ✅ Estilos para mensagens
   messageContainer: {
@@ -301,6 +330,16 @@ const styles = StyleSheet.create({
     paddingTop: 16,
     borderTopWidth: 1,
     borderTopColor: "#e5e7eb",
+  },
+  debugContainer: {
+    marginTop: 8,
+    padding: 8,
+    backgroundColor: "#f3f4f6",
+    borderRadius: 4,
+  },
+  debugText: {
+    fontSize: 10,
+    fontFamily: "monospace",
   },
 })
 

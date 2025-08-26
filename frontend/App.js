@@ -1,14 +1,3 @@
-<<<<<<< HEAD
-import { StyleSheet } from "react-native"
-import { NavigationContainer } from "@react-navigation/native"
-import { createNativeStackNavigator } from "@react-navigation/native-stack"
-import { ThemeProvider } from "./contexts/themeContexts"
-import LoginScreen from "./screens/loginScreen.js"
-import RegisterScreen from "./screens/registerScreen.js"
-import ForgotPasswordScreen from "./screens/forgotPasswordScreen.js"
-import HomeScreen from "./screens/HomeScreen.js"
-import SettingsScreen from "./screens/SettingsScreen.js"
-=======
 import React, { useEffect } from 'react'
 import { StyleSheet, View, ActivityIndicator } from "react-native"
 import { NavigationContainer } from "@react-navigation/native"
@@ -18,10 +7,10 @@ import { AuthProvider, useAuth } from "./contexts/authContexts"
 import AsyncStorage from '@react-native-async-storage/async-storage'
 
 // Screens
-import LoginScreen from "./components/loginScreen.js"
-import RegisterScreen from "./components/registerScreen.js"
-import ForgotPasswordScreen from "./components/forgotPasswordScreen.js"
-import HomeScreen from "./components/homeScreen.js"
+import LoginScreen from "./screens/loginScreen.js"        // ✅ Mudar para screens
+import RegisterScreen from "./screens/registerScreen.js"  // ✅ Mudar para screens
+import ForgotPasswordScreen from "./screens/forgotPasswordScreen.js" // ✅ Mudar para screens
+import HomeScreen from "./screens/HomeScreen.js"          // ✅ Mudar para screens
 
 const Stack = createNativeStackNavigator()
 
@@ -43,8 +32,8 @@ function AuthChecker({ children }) {
 
   if (isLoading) {
     return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-        <ActivityIndicator size="large" />
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#007AFF" />
       </View>
     )
   }
@@ -54,83 +43,72 @@ function AuthChecker({ children }) {
 
 function AuthStack() {
   return (
-    <Stack.Navigator screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="Login" component={LoginScreen} />
-      <Stack.Screen name="Register" component={RegisterScreen} />
-      <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
+    <Stack.Navigator 
+      screenOptions={{ 
+        headerShown: false,
+        animation: 'slide_from_right',
+        animationDuration: 300
+      }}
+    >
+      <Stack.Screen 
+        name="Login" 
+        component={LoginScreen}
+        options={{
+          gestureEnabled: false // Impede voltar por gesto na tela de login
+        }}
+      />
+      <Stack.Screen 
+        name="Register" 
+        component={RegisterScreen}
+        options={{
+          title: "Criar Conta",
+          gestureEnabled: true
+        }}
+      />
+      <Stack.Screen 
+        name="ForgotPassword" 
+        component={ForgotPasswordScreen}
+        options={{
+          title: "Recuperar Senha",
+          gestureEnabled: true
+        }}
+      />
     </Stack.Navigator>
   )
 }
->>>>>>> 1def373015fbc27d0b5dd9d2abc2f76dd77f90f5
 
 function AppStack() {
   return (
-    <Stack.Navigator screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="Home" component={HomeScreen} />
+    <Stack.Navigator 
+      screenOptions={{ 
+        headerShown: false,
+        animation: 'slide_from_right',
+        animationDuration: 300
+      }}
+    >
+      <Stack.Screen 
+        name="Home" 
+        component={HomeScreen}
+        options={{
+          gestureEnabled: false, // Impede voltar para login por gesto
+          title: "Lista de Tarefas"
+        }}
+      />
+      {/* ✅ Adicione outras telas principais aqui conforme necessário */}
     </Stack.Navigator>
   )
 }
 
 function RootNavigator() {
   const { userToken } = useAuth()
+  
+  // ✅ Renderiza stack baseado no estado de autenticação
   return userToken ? <AppStack /> : <AuthStack />
 }
 
 export default function App() {
   return (
     <ThemeProvider>
-<<<<<<< HEAD
-      <NavigationContainer>
-        <Stack.Navigator 
-          initialRouteName="Login" 
-          screenOptions={{ 
-            headerShown: false,
-            animation: 'slide_from_right', // ✅ Animação suave entre telas
-            animationDuration: 300
-          }}
-        >
-          {/* ✅ Telas de Autenticação */}
-          <Stack.Screen 
-            name="Login" 
-            component={LoginScreen}
-            options={{
-              gestureEnabled: false // ✅ Impede voltar por gesto na tela de login
-            }}
-          />
-          <Stack.Screen 
-            name="Register" 
-            component={RegisterScreen}
-            options={{
-              title: "Criar Conta"
-            }}
-          />
-          <Stack.Screen 
-            name="ForgotPassword" 
-            component={ForgotPasswordScreen}
-            options={{
-              title: "Recuperar Senha"
-            }}
-          />
-          
-          {/* ✅ Telas Principais da Aplicação */}
-          <Stack.Screen 
-            name="Home" 
-            component={HomeScreen}
-            options={{
-              gestureEnabled: false, // ✅ Impede voltar para login por gesto
-              title: "Lista de Tarefas"
-            }}
-          />
-          <Stack.Screen 
-            name="Settings" 
-            component={SettingsScreen}
-            options={{
-              title: "Configurações"
-            }}
-          />
-        </Stack.Navigator>
-      </NavigationContainer>
-=======
       <AuthProvider>
         <NavigationContainer>
           <AuthChecker>
@@ -138,7 +116,6 @@ export default function App() {
           </AuthChecker>
         </NavigationContainer>
       </AuthProvider>
->>>>>>> 1def373015fbc27d0b5dd9d2abc2f76dd77f90f5
     </ThemeProvider>
   )
 }
@@ -149,4 +126,10 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#f5f5f5'
+  }
 })
