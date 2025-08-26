@@ -11,7 +11,12 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
 from pathlib import Path
+<<<<<<< HEAD
 from decouple import config
+=======
+import os
+
+>>>>>>> 1def373015fbc27d0b5dd9d2abc2f76dd77f90f5
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -37,8 +42,14 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'corsheaders',
     'rest_framework',
+<<<<<<< HEAD
     'tasklist',
     'rest_framework.authtoken',
+=======
+    'rest_framework.authtoken',
+    'accounts',
+    
+>>>>>>> 1def373015fbc27d0b5dd9d2abc2f76dd77f90f5
 ]
 
 MIDDLEWARE = [
@@ -52,6 +63,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
+<<<<<<< HEAD
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
     "http://127.0.0.1:3000",
@@ -64,10 +76,13 @@ CORS_ALLOWED_ORIGINS = [
 CORS_ALLOW_CREDENTIALS = True
 
 # REST Framework Configuration
+=======
+>>>>>>> 1def373015fbc27d0b5dd9d2abc2f76dd77f90f5
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework.authentication.TokenAuthentication',
     ],
+<<<<<<< HEAD
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.IsAuthenticated',
     ],
@@ -84,6 +99,68 @@ DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default=config('EMAIL_HOST_USE
 
 # 🌐 URL DO FRONTEND
 FRONTEND_URL = config('FRONTEND_URL', default='http://localhost:8081')
+=======
+}
+
+AUTH_USER_MODEL = 'accounts.CustomUser'
+
+CORS_ALLOW_ALL_ORIGINS = True
+>>>>>>> 1def373015fbc27d0b5dd9d2abc2f76dd77f90f5
+
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:8081",  # Add your frontend origin
+    "http://localhost:3000",
+]
+
+CORS_ALLOW_HEADERS = [
+    'accept',
+    'accept-encoding',
+    'authorization',
+    'content-type',
+    'dnt',
+    'origin',
+    'user-agent',
+    'x-csrftoken',
+    'x-requested-with',
+    'x-platform',  # Add this line to allow your custom header
+]
+
+CORS_ALLOW_METHODS = [
+    'DELETE',
+    'GET',
+    'OPTIONS',
+    'PATCH',
+    'POST',
+    'PUT',
+]
+
+CSRF_TRUSTED_ORIGINS = [
+    "http://localhost:3000",
+    "http://localhost:19006",
+]
+
+SESSION_COOKIE_SAMESITE = 'Lax'
+CSRF_COOKIE_SAMESITE = 'Lax'
+
+
+if DEBUG:
+    EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+else:
+    EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+
+EMAIL_TEMPLATES = {
+    'PASSWORD_RESET': {
+        'subject': 'Redefinição de Senha',
+        'html_template': 'emails/password_reset.html',
+        'text_template': 'emails/password_reset.txt',
+    },
+    'VERIFICATION': {
+        'subject': 'Verificação de E-mail',
+        'html_template': 'emails/verification.html',
+        'text_template': 'emails/verification.txt',
+    }
+}
+
 
 ROOT_URLCONF = 'taskmanagement.urls'
 
