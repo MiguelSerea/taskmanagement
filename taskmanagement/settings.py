@@ -11,12 +11,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
 from pathlib import Path
-<<<<<<< HEAD
-from decouple import config
-=======
 import os
-
->>>>>>> 1def373015fbc27d0b5dd9d2abc2f76dd77f90f5
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -25,12 +20,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = config('SECRET_KEY')
+SECRET_KEY = 'django-insecure-your-secret-key-here-change-in-production'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = config('DEBUG', default=False, cast=bool)
+DEBUG = True
 
-ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='').split(',') if config('ALLOWED_HOSTS', default='') else []
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', '0.0.0.0']
 
 # Application definition
 INSTALLED_APPS = [
@@ -42,18 +37,12 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'corsheaders',
     'rest_framework',
-<<<<<<< HEAD
-    'tasklist',
     'rest_framework.authtoken',
-=======
-    'rest_framework.authtoken',
-    'accounts',
-    
->>>>>>> 1def373015fbc27d0b5dd9d2abc2f76dd77f90f5
+    'accounts',  # ✅ Sua app principal
 ]
 
 MIDDLEWARE = [
-    'corsheaders.middleware.CorsMiddleware',  # Movido para o topo
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -63,54 +52,32 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-<<<<<<< HEAD
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:3000",
-    "http://127.0.0.1:3000",
-    "http://localhost:8081",  # ✅ Adicione esta linha
-    "http://127.0.0.1:8081",  # ✅ Adicione esta linha
-    "http://localhost:19006", # ✅ Para Expo web
-    "http://127.0.0.1:19006", # ✅ Para Expo web
-]
-
-CORS_ALLOW_CREDENTIALS = True
-
-# REST Framework Configuration
-=======
->>>>>>> 1def373015fbc27d0b5dd9d2abc2f76dd77f90f5
+# ✅ REST Framework Configuration
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework.authentication.TokenAuthentication',
     ],
-<<<<<<< HEAD
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.IsAuthenticated',
     ],
 }
 
-# 📧 CONFIGURAÇÕES DE EMAIL
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_PORT = 587
-EMAIL_USE_TLS = True
-EMAIL_HOST_USER = config('EMAIL_HOST_USER')
-EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD')
-DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default=config('EMAIL_HOST_USER'))
-
-# 🌐 URL DO FRONTEND
-FRONTEND_URL = config('FRONTEND_URL', default='http://localhost:8081')
-=======
-}
-
+# ✅ Modelo de usuário customizado
 AUTH_USER_MODEL = 'accounts.CustomUser'
 
-CORS_ALLOW_ALL_ORIGINS = True
->>>>>>> 1def373015fbc27d0b5dd9d2abc2f76dd77f90f5
+# ✅ Configurações de CORS
+CORS_ALLOW_ALL_ORIGINS = True  # Para desenvolvimento
 
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:8081",  # Add your frontend origin
+    "http://localhost:8081",
     "http://localhost:3000",
+    "http://127.0.0.1:8081",
+    "http://127.0.0.1:3000",
+    "http://localhost:19006",
+    "http://127.0.0.1:19006",
 ]
+
+CORS_ALLOW_CREDENTIALS = True
 
 CORS_ALLOW_HEADERS = [
     'accept',
@@ -122,7 +89,7 @@ CORS_ALLOW_HEADERS = [
     'user-agent',
     'x-csrftoken',
     'x-requested-with',
-    'x-platform',  # Add this line to allow your custom header
+    'x-platform',
 ]
 
 CORS_ALLOW_METHODS = [
@@ -137,16 +104,25 @@ CORS_ALLOW_METHODS = [
 CSRF_TRUSTED_ORIGINS = [
     "http://localhost:3000",
     "http://localhost:19006",
+    "http://localhost:8081",
 ]
 
 SESSION_COOKIE_SAMESITE = 'Lax'
 CSRF_COOKIE_SAMESITE = 'Lax'
 
-
+# ✅ Configurações de Email
 if DEBUG:
     EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 else:
     EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+    EMAIL_HOST = 'smtp.gmail.com'
+    EMAIL_PORT = 587
+    EMAIL_USE_TLS = True
+    EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER', '')
+    EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD', '')
+
+DEFAULT_FROM_EMAIL = 'taskmanagement@exemplo.com'
+FRONTEND_URL = 'http://localhost:8081'
 
 EMAIL_TEMPLATES = {
     'PASSWORD_RESET': {
@@ -161,7 +137,6 @@ EMAIL_TEMPLATES = {
     }
 }
 
-
 ROOT_URLCONF = 'taskmanagement.urls'
 
 TEMPLATES = [
@@ -171,7 +146,7 @@ TEMPLATES = [
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
-                'django.template.context_processors.debug',  # Adicionado
+                'django.template.context_processors.debug',
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
@@ -183,7 +158,6 @@ TEMPLATES = [
 WSGI_APPLICATION = 'taskmanagement.wsgi.application'
 
 # Database
-# https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
@@ -192,7 +166,6 @@ DATABASES = {
 }
 
 # Password validation
-# https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
 AUTH_PASSWORD_VALIDATORS = [
     {
         'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
@@ -209,16 +182,13 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 # Internationalization
-# https://docs.djangoproject.com/en/5.2/topics/i18n/
-LANGUAGE_CODE = config('LANGUAGE_CODE', default='pt-br')
-TIME_ZONE = config('TIME_ZONE', default='America/Sao_Paulo')
+LANGUAGE_CODE = 'pt-br'
+TIME_ZONE = 'America/Sao_Paulo'
 USE_I18N = True
 USE_TZ = True
 
 # Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/5.2/howto/static-files/
 STATIC_URL = 'static/'
 
 # Default primary key field type
-# https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
