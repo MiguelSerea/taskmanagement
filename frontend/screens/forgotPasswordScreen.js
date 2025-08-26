@@ -1,38 +1,48 @@
 "use client"
 import { useState } from "react"
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, ActivityIndicator } from "react-native"
-import { Mail, Lock, User } from "lucide-react-native"
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, ActivityIndicator, Alert } from "react-native"
+import { Mail } from "lucide-react-native"
 import { useTheme } from "../contexts/themeContexts.js"
 import ThemeToggle from "./ThemeToggle.js"
+import ApiService from "../services/api.js"
 
-const RegisterScreen = ({ navigation }) => {
-  const [name, setName] = useState("")
-  const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
-  const [confirmPassword, setConfirmPassword] = useState("")
-  const [isLoading, setIsLoading] = useState(false)
+const ForgotPasswordScreen = ({ navigation }) => {
   const { theme } = useTheme()
+  const [email, setEmail] = useState("")
+  const [isLoading, setIsLoading] = useState(false)
 
-  const handleSubmit = async () => {
-    if (!name || !email || !password || !confirmPassword) {
-      alert("Por favor, preencha todos os campos.")
+  const handleResetPassword = async () => {
+    if (!email) {
+      Alert.alert("Erro", "Por favor, informe seu email.")
       return
     }
 
-    if (password !== confirmPassword) {
-      alert("As senhas não coincidem.")
+    // Validação básica de email
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (!emailRegex.test(email)) {
+      Alert.alert("Erro", "Por favor, informe um email válido.")
       return
     }
 
     setIsLoading(true)
 
     try {
-      await new Promise((resolve) => setTimeout(resolve, 1000))
-      console.log("Registro com:", { name, email, password })
-      alert("Conta criada com sucesso!")
-      navigation.navigate("Home")
-    } catch (err) {
-      alert("Falha no registro. Tente novamente.")
+      const response = await ApiService.forgotPassword(email)
+      
+      Alert.alert(
+        "Email enviado",
+        response.message || "Se este email estiver cadastrado, você receberá instruções para redefinir sua senha.",
+        [{ 
+          text: "OK", 
+          onPress: () => navigation.navigate("Login") 
+        }]
+      )
+      
+    } catch (error) {
+      Alert.alert(
+        "Erro", 
+        error.message || "Não foi possível enviar o email de recuperação. Tente novamente."
+      )
     } finally {
       setIsLoading(false)
     }
@@ -55,33 +65,13 @@ const RegisterScreen = ({ navigation }) => {
         ]}
       >
         <View style={styles.header}>
-          <Text style={[styles.title, { color: theme.textPrimary }]}>Cadastre-se</Text>
-          <Text style={[styles.subtitle, { color: theme.textSecondary }]}>Crie sua conta para começar</Text>
+          <Text style={[styles.title, { color: theme.textPrimary }]}>Recuperar Senha</Text>
+          <Text style={[styles.subtitle, { color: theme.textSecondary }]}>
+            Digite seu email para receber instruções de recuperação
+          </Text>
         </View>
 
         <View style={styles.form}>
-          <View style={styles.formGroup}>
-            <Text style={[styles.label, { color: theme.textPrimary }]}>Nome completo</Text>
-            <View
-              style={[
-                styles.inputContainer,
-                {
-                  borderColor: theme.borderColor,
-                  backgroundColor: theme.inputBg,
-                },
-              ]}
-            >
-              <User size={18} color={theme.textSecondary} style={styles.inputIcon} />
-              <TextInput
-                style={[styles.input, { color: theme.textPrimary }]}
-                placeholder="Seu nome completo"
-                placeholderTextColor={theme.textSecondary}
-                value={name}
-                onChangeText={setName}
-              />
-            </View>
-          </View>
-
           <View style={styles.formGroup}>
             <Text style={[styles.label, { color: theme.textPrimary }]}>Email</Text>
             <View
@@ -98,81 +88,36 @@ const RegisterScreen = ({ navigation }) => {
                 style={[styles.input, { color: theme.textPrimary }]}
                 placeholder="seu@email.com"
                 placeholderTextColor={theme.textSecondary}
-                value={email}
-                onChangeText={setEmail}
                 keyboardType="email-address"
                 autoCapitalize="none"
-              />
-            </View>
-          </View>
-
-          <View style={styles.formGroup}>
-            <Text style={[styles.label, { color: theme.textPrimary }]}>Senha</Text>
-            <View
-              style={[
-                styles.inputContainer,
-                {
-                  borderColor: theme.borderColor,
-                  backgroundColor: theme.inputBg,
-                },
-              ]}
-            >
-              <Lock size={18} color={theme.textSecondary} style={styles.inputIcon} />
-              <TextInput
-                style={[styles.input, { color: theme.textPrimary }]}
-                placeholder="Crie uma senha"
-                placeholderTextColor={theme.textSecondary}
-                value={password}
-                onChangeText={setPassword}
-                secureTextEntry
-              />
-            </View>
-          </View>
-
-          <View style={styles.formGroup}>
-            <Text style={[styles.label, { color: theme.textPrimary }]}>Confirmar senha</Text>
-            <View
-              style={[
-                styles.inputContainer,
-                {
-                  borderColor: theme.borderColor,
-                  backgroundColor: theme.inputBg,
-                },
-              ]}
-            >
-              <Lock size={18} color={theme.textSecondary} style={styles.inputIcon} />
-              <TextInput
-                style={[styles.input, { color: theme.textPrimary }]}
-                placeholder="Confirme sua senha"
-                placeholderTextColor={theme.textSecondary}
-                value={confirmPassword}
-                onChangeText={setConfirmPassword}
-                secureTextEntry
+                value={email}
+                onChangeText={setEmail}
+                editable={!isLoading}
               />
             </View>
           </View>
 
           <TouchableOpacity
             style={[styles.submitButton, isLoading && styles.submitButtonDisabled]}
-            onPress={handleSubmit}
+            onPress={handleResetPassword}
             disabled={isLoading}
           >
             {isLoading ? (
               <View style={styles.loadingContainer}>
                 <ActivityIndicator size="small" color="#ffffff" />
-                <Text style={styles.buttonText}>Registrando...</Text>
+                <Text style={styles.buttonText}>Enviando...</Text>
               </View>
             ) : (
-              <Text style={styles.buttonText}>Registrar</Text>
+              <Text style={styles.buttonText}>Enviar Instruções</Text>
             )}
           </TouchableOpacity>
         </View>
 
         <View style={styles.footer}>
           <Text style={[styles.footerText, { color: theme.textSecondary }]}>
-            Já tem uma conta?{" "}
+            Lembrou sua senha?{" "}
             <Text style={styles.loginLink} onPress={() => navigation.navigate("Login")}>
-              Entrar
+              Voltar ao login
             </Text>
           </Text>
         </View>
@@ -181,6 +126,7 @@ const RegisterScreen = ({ navigation }) => {
   )
 }
 
+// Estilos permanecem os mesmos...
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -223,7 +169,7 @@ const styles = StyleSheet.create({
     lineHeight: 24,
   },
   form: {
-    gap: 20,
+    gap: 24,
   },
   formGroup: {
     gap: 8,
@@ -284,4 +230,4 @@ const styles = StyleSheet.create({
   },
 })
 
-export default RegisterScreen
+export default ForgotPasswordScreen
